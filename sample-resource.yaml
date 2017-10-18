@@ -1,0 +1,10 @@
+apiVersion: trussle.com/v1alpha1
+kind: IamRole
+metadata:
+  name: test
+spec:
+  name: test@trusslenetes-01.stg.trussle.com
+  policyDocument: |
+    "Hello World"
+  rolePolicyDocument: |
+    "Hello World"

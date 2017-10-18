@@ -1,0 +1,17 @@
+package: github.com/chronojam/aws-operator
+import:
+- package: k8s.io/apiextensions-apiserver
+  subpackages:
+  - pkg/apis/apiextensions/v1beta1
+  - pkg/client/clientset/clientset
+- package: k8s.io/apimachinery
+  subpackages:
+  - pkg/api/errors
+  - pkg/apis/meta/v1
+  - pkg/runtime
+  - pkg/runtime/schema
+  - pkg/runtime/serializer
+- package: k8s.io/client-go
+  subpackages:
+  - rest
+  - tools/cache
