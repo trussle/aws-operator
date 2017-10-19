@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/chronojam/aws-operator/iamrole"
+	"github.com/trussle/aws-operator/iam"
 	apiextcs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/rest"
 )
@@ -17,12 +17,12 @@ func main() {
 		panic(err.Error())
 	}
 
-	crdcs, _, err := iamrole.NewClient(restCfg)
+	crdcs, _, err := iam.NewClient(restCfg)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	cnt, err := iamrole.New()
+	cnt, err := iam.New()
 	if err != nil {
 		panic(err.Error())
 	}

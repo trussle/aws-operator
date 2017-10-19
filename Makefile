@@ -1,14 +1,8 @@
-
+TAG=$(shell git rev-parse --abbrev-ref HEAD)
 
 build:
 	GOOS=linux CGO_ENABLED=0 go build .
-	docker build -t calum/operator:test .
+	docker build -t teamtrussle/aws-operator:$(TAG) .
 
-
-
-test:
-	kubectl delete pods -l app=oper
-
-reset:
-	kubectl delete iamroles --all
-	kubectl create -f sample-resource
+release:
+	docker push teamtrussle/aws-operator:$(TAG)

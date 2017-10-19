@@ -1,4 +1,4 @@
-package iamrole
+package iam
 
 import (
 	"reflect"
@@ -14,18 +14,23 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+const (
+	CRDVersion = "v1alpha1"
+	CRDGroup   = "trussle.com"
+)
+
 var SchemeGroupVersion = schema.GroupVersion{Group: CRDGroup, Version: CRDVersion}
 
-func Register(clientset apiextcs.Interface) error {
+func Register(clientset apiextcs.Interface, t interface{}, crdNamePlural, crdGroup, crdVersion string) error {
 	crd := &apiextv1beta1.CustomResourceDefinition{
-		ObjectMeta: meta_v1.ObjectMeta{Name: CRDNamePlural + "." + CRDGroup},
+		ObjectMeta: meta_v1.ObjectMeta{Name: crdNamePlural + "." + crdGroup},
 		Spec: apiextv1beta1.CustomResourceDefinitionSpec{
-			Group:   CRDGroup,
-			Version: CRDVersion,
+			Group:   crdGroup,
+			Version: crdVersion,
 			Scope:   apiextv1beta1.NamespaceScoped,
 			Names: apiextv1beta1.CustomResourceDefinitionNames{
-				Plural: CRDNamePlural,
-				Kind:   reflect.TypeOf(IamRole{}).Name(),
+				Plural: crdNamePlural,
+				Kind:   reflect.TypeOf(t).Name(),
 			},
 		},
 	}
@@ -40,8 +45,10 @@ func Register(clientset apiextcs.Interface) error {
 
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
-		&IamRole{},
-		&IamRoleList{},
+		&AWSIamRole{},
+		&AWSIamRoleList{},
+		&AWSIamPolicy{},
+		&AWSIamPolicyList{},
 	)
 	meta_v1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil

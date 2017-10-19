@@ -1,10 +1,35 @@
 apiVersion: trussle.com/v1alpha1
 kind: IamRole
 metadata:
-  name: test
+  name: my-custom-role
 spec:
-  name: test@trusslenetes-01.stg.trussle.com
+  name: my-custom-role
   policyDocument: |
-    "Hello World"
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+          {
+              "Sid": "Stmt1506946329000",
+              "Effect": "Allow",
+              "Action": [
+            "s3:*"
+              ],
+              "Resource": [
+            "*"
+              ]
+          }
+        ]  
+      }
   rolePolicyDocument: |
-    "Hello World"
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "Service": "ec2.amazonaws.com"
+          },
+          "Action": "sts:AssumeRole"
+        }
+      ]
+    }

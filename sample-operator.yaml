@@ -1,19 +1,19 @@
 apiVersion: apps/v1beta1 # for versions before 1.8.0 use apps/v1beta1
 kind: Deployment
 metadata:
-  name: oper
+  name: aws-operator
   labels:
-    app: oper
+    app: aws-operator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: oper
+      app: aws-operator
   template:
     metadata:
       labels:
-        app: oper
+        app: aws-operator
     spec:
       containers:
-      - name: oper
-        image: calum/operator:test
+      - name: aws-operator
+        image: teamtrussle/aws-operator:master
