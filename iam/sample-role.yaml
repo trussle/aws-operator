@@ -1,23 +1,22 @@
 apiVersion: trussle.com/v1alpha1
 kind: AWSIamRole
 metadata:
-  name: my-custom-role
+  name: test
 spec:
   managedPolicies: 
-    - "my-custom-policy"
+    - "test"
   # Rolespec = https://docs.aws.amazon.com/sdk-for-go/api/service/iam/#CreateRoleInput
-  roleSpec:
-    roleName: "my-custom-role"
-    assumeRolePolicyDocument: |
-      {
-        "Version": "2012-10-17",
-        "Statement": [
-          {
-            "Effect": "Allow",
-            "Principal": {
-              "Service": "ec2.amazonaws.com"
-            },
-            "Action": "sts:AssumeRole"
-          }
-        ]
-      }
+  roleName: "test"
+  assumeRolePolicyDocument: |
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "Service": "ec2.amazonaws.com"
+          },
+          "Action": "sts:AssumeRole"
+        }
+      ]
+    }

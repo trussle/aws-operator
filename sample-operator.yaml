@@ -14,6 +14,13 @@ spec:
       labels:
         app: aws-operator
     spec:
+      volumes:
+      - name: ssl
+        hostPath:
+          path: /etc/ssl
       containers:
       - name: aws-operator
         image: teamtrussle/aws-operator:master
+        volumeMounts:
+        - name: ssl
+          mountPath: /etc/ssl

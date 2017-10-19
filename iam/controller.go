@@ -62,7 +62,7 @@ func (c *Controller) Run(clientset apiextcs.Interface, client *rest.RESTClient) 
 	time.Sleep(3 * time.Second)
 	_, policyinf := cache.NewInformer(
 		cache.NewListWatchFromClient(client, AWSIamPolicyCRDNamePlural, os.Getenv("NAMESPACE"), fields.Everything()),
-		&AWSIamRole{},
+		&AWSIamPolicy{},
 		time.Minute*1,
 		cache.ResourceEventHandlerFuncs{
 			AddFunc:    c.AddPolicy,

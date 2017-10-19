@@ -19,8 +19,12 @@ type AWSIamRole struct {
 
 type AWSIamRoleSpec struct {
 	// Just use the types directly from aws sdk.
-	RoleSpec        *iam.CreateRoleInput `json:"roleSpec"`
-	ManagedPolicies []string             `json:"managedPolicies"`
+	AssumeRolePolicyDocument string `json:"assumeRolePolicyDocument"`
+	Description              string `json:"description"`
+	Path                     string `json:"path"`
+	RoleName                 string `json:"roleName"`
+
+	ManagedPolicies []string `json:"managedPolicies"`
 }
 
 type AWSIamRoleList struct {
@@ -39,15 +43,28 @@ func (c *Controller) AddRole(obj interface{}) {
 		fmt.Printf(err.Error())
 		return
 	}
+	input := &iam.CreateRoleInput{
+		RoleName:                 &role.Spec.RoleName,
+		AssumeRolePolicyDocument: &role.Spec.AssumeRolePolicyDocument,
+	}
+
+	if role.Spec.Path != "" {
+		input.Path = &role.Spec.Path
+	}
+
+	if role.Spec.Description != "" {
+		input.Description = &role.Spec.Description
+	}
+
 	for _, ir := range iroles.Roles {
-		if ir.RoleName == role.Spec.RoleSpec.RoleName {
-			fmt.Printf("Skipping due to existing IAM role: %s\n", role.Spec.RoleSpec.RoleName)
+		if *ir.RoleName == role.Spec.RoleName {
+			fmt.Printf("Skipping due to existing IAM role: %s\n", role.Spec.RoleName)
 			return
 		}
 	}
-	_, err = c.svc.CreateRole(role.Spec.RoleSpec)
+	_, err = c.svc.CreateRole(input)
 	if err != nil {
-		fmt.Printf("Failed to create role: %s\n%v", role.Spec.RoleSpec.RoleName, err)
+		fmt.Printf("Failed to create role: %s\n%v", role.Spec.RoleName, err)
 		return
 	}
 
@@ -61,7 +78,7 @@ func (c *Controller) AddRole(obj interface{}) {
 		for _, pa := range role.Spec.ManagedPolicies {
 			if *ip.PolicyName == pa {
 				_, err = c.svc.AttachRolePolicy(&iam.AttachRolePolicyInput{
-					RoleName:  role.Spec.RoleSpec.RoleName,
+					RoleName:  &role.Spec.RoleName,
 					PolicyArn: ip.Arn,
 				})
 				if err != nil {

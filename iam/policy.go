@@ -19,8 +19,10 @@ type AWSIamPolicy struct {
 }
 
 type AWSIamPolicySpec struct {
-	// Just use the types directly from aws sdk.
-	PolicySpec *iam.CreatePolicyInput `json:"policySpec"`
+	PolicyName     string `json:"policyName"`
+	PolicyDocument string `json:"policyDocument"`
+	Path           string `json:"path"`
+	Description    string `json:"description"`
 }
 
 type AWSIamPolicyList struct {
@@ -38,13 +40,27 @@ func (c *Controller) AddPolicy(obj interface{}) {
 		fmt.Printf(err.Error())
 		return
 	}
+
+	input := &iam.CreatePolicyInput{
+		PolicyName:     &policy.Spec.PolicyName,
+		PolicyDocument: &policy.Spec.PolicyDocument,
+	}
+
+	if policy.Spec.Path != "" {
+		input.Path = &policy.Spec.Path
+	}
+
+	if policy.Spec.Description != "" {
+		input.Description = &policy.Spec.Description
+	}
+
 	for _, ip := range ipolicies.Policies {
-		if ip.PolicyName == policy.Spec.PolicySpec.PolicyName {
-			fmt.Printf("Skipping policy due to existing policy: %s\n%v", policy.Spec.PolicySpec.PolicyName, err)
+		if *ip.PolicyName == policy.Spec.PolicyName {
+			fmt.Printf("Skipping policy due to existing policy: %s\n%v", policy.Spec.PolicyName, err)
 			return
 		}
 	}
-	_, err := c.svc.CreatePolicy(policy.Spec.PolicySpec)
+	_, err = c.svc.CreatePolicy(input)
 	if err != nil {
 		fmt.Printf(err.Error())
 		return

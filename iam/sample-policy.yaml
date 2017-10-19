@@ -1,24 +1,23 @@
 apiVersion: trussle.com/v1alpha1
 kind: AWSIamPolicy
 metadata:
-  name: my-custom-policy
+  name: test
 spec:
   # PolicySpec = https://docs.aws.amazon.com/sdk-for-go/api/service/iam/#CreatePolicyInput
-  roleSpec:
-    policyName: "my-custom-role"
-    policyDocument: |
-      {
-	"Version": "2012-10-17",
-	"Statement": [
-	    {
-		"Sid": "Stmt1506946329000",
-		"Effect": "Allow",
-		"Action": [
-	      "s3:*"
-		],
-		"Resource": [
-	      "*"
-		]
-	    }
-	  ]  
-	}
+  policyName: "test"
+  policyDocument: |
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+          {
+        "Sid": "Stmt1506946329000",
+        "Effect": "Allow",
+        "Action": [
+            "s3:*"
+        ],
+        "Resource": [
+            "*"
+        ]
+          }
+        ]  
+    }
