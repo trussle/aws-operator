@@ -1,4 +1,4 @@
-package: github.com/chronojam/aws-operator
+package: github.com/trussle/aws-operator
 import:
 - package: k8s.io/apiextensions-apiserver
   subpackages:

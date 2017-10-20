@@ -1,0 +1,8 @@
+apiVersion: trussle.com/v1alpha1
+kind: AWSSqsQueue 
+metadata:
+  name: test
+spec:
+  # PolicySpec = https://docs.aws.amazon.com/sdk-for-go/api/service/iam/#CreatePolicyInput
+  queueName: "kube-test"
+  region: "eu-west-1"

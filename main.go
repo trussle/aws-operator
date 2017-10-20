@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/trussle/aws-operator/iam"
+	"github.com/trussle/aws-operator/sqs"
 	apiextcs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/rest"
 )
@@ -22,12 +23,23 @@ func main() {
 		panic(err.Error())
 	}
 
-	cnt, err := iam.New()
+	sqsCrd, sqsScheme, err := sqs.NewClient(restCfg)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	go cnt.Run(clientset, crdcs)
+	iamController, err := iam.New()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	sqsController, err := sqs.New(sqsScheme)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	go sqsController.Run(clientset, sqsCrd)
+	go iamController.Run(clientset, crdcs)
 
 	select {}
 }
