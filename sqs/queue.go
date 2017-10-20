@@ -2,13 +2,13 @@ package sqs
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/service/sqs"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sqs"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -37,17 +37,17 @@ type AWSSqsQueueList struct {
 }
 
 func (c *Controller) SetupService(region string) {
-  fmt.Printf("Setting up service with region %s\n", region)
+	fmt.Printf("Setting up service with region %s\n", region)
 
-  sess, err := session.NewSession()
+	sess, err := session.NewSession()
 	if err != nil {
-    fmt.Printf("Error creating AWS session: %v\n", err)
+		fmt.Printf("Error creating AWS session: %v\n", err)
 		return
 	}
 
 	creds := credentials.NewChainCredentials(
 		[]credentials.Provider{
-      &credentials.SharedCredentialsProvider{},
+			&credentials.SharedCredentialsProvider{},
 			&credentials.EnvProvider{},
 			&ec2rolecreds.EC2RoleProvider{
 				Client: ec2metadata.New(sess),
@@ -60,7 +60,7 @@ func (c *Controller) SetupService(region string) {
 	})
 
 	if err != nil {
-    fmt.Printf("Error creating AWS session: %v\n", err)
+		fmt.Printf("Error creating AWS session: %v\n", err)
 		return
 	}
 
