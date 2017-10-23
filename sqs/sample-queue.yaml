@@ -1,0 +1,7 @@
+apiVersion: trussle.com/v1alpha1
+kind: AWSSqsQueue 
+metadata:
+  name: test
+spec:
+  queueName: "kube-test"
+  region: "eu-west-1"

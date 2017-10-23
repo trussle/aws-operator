@@ -18,9 +18,14 @@ spec:
       - name: ssl
         hostPath:
           path: /etc/ssl
+      - name: awscreds
+        hostPath:
+          path: $(CREDS_FILE)
       containers:
       - name: aws-operator
         image: teamtrussle/aws-operator:master
         volumeMounts:
+        - name: awscreds
+          mountPath: /root/.aws/credentials
         - name: ssl
           mountPath: /etc/ssl
