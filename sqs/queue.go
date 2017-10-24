@@ -2,12 +2,8 @@ package sqs
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
-	"github.com/aws/aws-sdk-go/aws/ec2metadata"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
+
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -37,44 +33,11 @@ type AWSSqsQueueList struct {
 	Items []AWSSqsQueue `json:"items"`
 }
 
-func (c *Controller) SetupService(region string) {
-	fmt.Printf("Setting up service with region %s\n", region)
-
-	sess, err := session.NewSession()
-	if err != nil {
-		fmt.Printf("Error creating AWS session: %v\n", err)
-		return
-	}
-
-	creds := credentials.NewChainCredentials(
-		[]credentials.Provider{
-			&credentials.SharedCredentialsProvider{},
-			&credentials.EnvProvider{},
-			&ec2rolecreds.EC2RoleProvider{
-				Client: ec2metadata.New(sess),
-			},
-		})
-
-	sess, err = session.NewSession(&aws.Config{
-		Credentials: creds,
-		Region:      &region,
-	})
-
-	if err != nil {
-		fmt.Printf("Error creating AWS session: %v\n", err)
-		return
-	}
-
-	sqsSvc := sqs.New(sess)
-
-	c.svc = sqsSvc
-}
-
 func (c *Controller) AddQueue(obj interface{}) {
 	queue := obj.(*AWSSqsQueue)
 	fmt.Printf("Creating queue %s\n", queue.Spec.QueueName)
 
-	c.SetupService(queue.Spec.Region)
+	c.regionHost.ConfigureRegion(c, queue.Spec.Region)
 
 	input := &sqs.CreateQueueInput{
 		QueueName:  &queue.Spec.QueueName,
@@ -124,7 +87,7 @@ func (c *Controller) AddQueue(obj interface{}) {
 
 func (c *Controller) DeleteQueue(obj interface{}) {
 	queue := obj.(*AWSSqsQueue)
-	c.SetupService(queue.Spec.Region)
+	c.regionHost.ConfigureRegion(c, queue.Spec.Region)
 	fmt.Printf("Deleting queue %s\n", queue.Spec.QueueUrl)
 
 	input := &sqs.DeleteQueueInput{
@@ -148,7 +111,7 @@ func (c *Controller) DeleteQueue(obj interface{}) {
 
 func (c *Controller) UpdateQueue(old, new interface{}) {
 	queue := new.(*AWSSqsQueue)
-	c.SetupService(queue.Spec.Region)
+	c.regionHost.ConfigureRegion(c, queue.Spec.Region)
 
 	input := &sqs.SetQueueAttributesInput{
 		QueueUrl:   &queue.Spec.QueueUrl,
