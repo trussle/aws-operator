@@ -24,10 +24,10 @@ type AWSSqsQueue struct {
 }
 
 type AWSSqsQueueSpec struct {
-	QueueName string `json:"queueName"`
-	Region    string `json:"region"`
-	QueueUrl  string `json:"queueUrl"`
-  Attributes map[string]*string `json:"attributes"`
+	QueueName  string             `json:"queueName"`
+	Region     string             `json:"region"`
+	QueueUrl   string             `json:"queueUrl"`
+	Attributes map[string]*string `json:"attributes"`
 }
 
 type AWSSqsQueueList struct {
@@ -75,10 +75,12 @@ func (c *Controller) AddQueue(obj interface{}) {
 	fmt.Printf("Creating queue %s\n", queue.Spec.QueueName)
 
 	c.SetupService(queue.Spec.Region)
-  fmt.Printf("Result %v\n", queue.Spec.Attributes)
-  input := &sqs.CreateQueueInput{
-		QueueName: &queue.Spec.QueueName,
-    Attributes: queue.Spec.Attributes,
+
+	fmt.Printf("Result %+v\n", queue.Spec.Attributes)
+
+	input := &sqs.CreateQueueInput{
+		QueueName:  &queue.Spec.QueueName,
+		Attributes: queue.Spec.Attributes,
 	}
 
 	response, err := c.svc.CreateQueue(input)
@@ -101,10 +103,10 @@ func (c *Controller) AddQueue(obj interface{}) {
 
 	queueCopy := copiedObject.(*AWSSqsQueue)
 	queueCopy.Spec.QueueUrl = *response.QueueUrl
-  if queueCopy.ObjectMeta.Annotations == nil {
-    queueCopy.ObjectMeta.Annotations = make(map[string]string)
-  }
-  queueCopy.ObjectMeta.Annotations[AWSSqsQueueCRDGroup + "/sqs-autocreated"] = "true"
+	if queueCopy.ObjectMeta.Annotations == nil {
+		queueCopy.ObjectMeta.Annotations = make(map[string]string)
+	}
+	queueCopy.ObjectMeta.Annotations[AWSSqsQueueCRDGroup+"/sqs-autocreated"] = "true"
 
 	err = c.restClient.Put().
 		Name(queue.ObjectMeta.Name).
@@ -130,11 +132,11 @@ func (c *Controller) DeleteQueue(obj interface{}) {
 	input := &sqs.DeleteQueueInput{
 		QueueUrl: &queue.Spec.QueueUrl,
 	}
-  
-  if queue.ObjectMeta.Annotations[AWSSqsQueueCRDGroup + "/sqs-autocreated"] != "true" {
-    fmt.Printf("Refusing to delete %s - queue not created by us", queue.Spec.QueueUrl)
-    return
-  }
+
+	if queue.ObjectMeta.Annotations[AWSSqsQueueCRDGroup+"/sqs-autocreated"] != "true" {
+		fmt.Printf("Refusing to delete %s - queue not created by us\n", queue.Spec.QueueUrl)
+		return
+	}
 
 	_, err := c.svc.DeleteQueue(input)
 
@@ -147,5 +149,20 @@ func (c *Controller) DeleteQueue(obj interface{}) {
 }
 
 func (c *Controller) UpdateQueue(old, new interface{}) {
-	fmt.Printf("Update not implemented\n")
+	queue := new.(*AWSSqsQueue)
+	c.SetupService(queue.Spec.Region)
+
+	input := &sqs.SetQueueAttributesInput{
+		QueueUrl:   &queue.Spec.QueueUrl,
+		Attributes: queue.Spec.Attributes,
+	}
+
+	_, err := c.svc.SetQueueAttributes(input)
+
+	if err != nil {
+		fmt.Printf("UpdateQueue - Encountered error setting queue attributes: %v", err)
+		return
+	}
+
+	return
 }
