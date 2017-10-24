@@ -1,0 +1,27 @@
+language: go
+
+services:
+  - docker
+
+sudo: required
+
+go:
+  - 1.8
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -o Dpkg::Options::="--force-confold" --force-yes -y -y docker-ce
+  - docker -v
+
+install:
+  - make
+  - go get github.com/mattn/goveralls
+
+script:
+  - make unit-tests
+  - make coverage
+
+after_success:
+  - export BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_BRANCH; else echo $TRAVIS_PULL_REQUEST_BRANCH; fi)
+  - make build-docker
+  - make push-docker
