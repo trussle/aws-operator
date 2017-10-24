@@ -5,3 +5,7 @@ metadata:
 spec:
   queueName: "kube-test"
   region: "eu-west-1"
+  attributes:
+    DelaySeconds: "20"
+    RedrivePolicy: |
+      { "deadLetterTargetArn": "arn:aws:sqs:xx-xxxx-x:xxxxxxxxxxx:kube-test-dl", "maxReceiveCount": 20 }
