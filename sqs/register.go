@@ -19,8 +19,10 @@ const (
 	CRDGroup   = "trussle.com"
 )
 
+/* SchemeGroupVersion is the relevant versoin for our CRD  */
 var SchemeGroupVersion = schema.GroupVersion{Group: CRDGroup, Version: CRDVersion}
 
+/* Register registers our CRD with the cluster */
 func Register(clientset apiextcs.Interface, t interface{}, crdNamePlural, crdGroup, crdVersion string) error {
 	crd := &apiextv1beta1.CustomResourceDefinition{
 		ObjectMeta: meta_v1.ObjectMeta{Name: crdNamePlural + "." + crdGroup},
@@ -52,6 +54,7 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 	return nil
 }
 
+/* NewClient creates a new Kubernetes RESTClient and scheme from a config */
 func NewClient(cfg *rest.Config) (*rest.RESTClient, *runtime.Scheme, error) {
 	scheme := runtime.NewScheme()
 	SchemeBuilder := runtime.NewSchemeBuilder(addKnownTypes)

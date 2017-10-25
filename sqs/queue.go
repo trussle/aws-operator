@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	AWSSqsQueueCRDName       = "awssqsqueue"
-	AWSSqsQueueCRDNamePlural = "awssqsqueues"
-	AWSSqsQueueCRDGroup      = "trussle.com"
+	AWSSqsQueueCRDName       = "awssqsqueue"  // The name of this CRD
+	AWSSqsQueueCRDNamePlural = "awssqsqueues" // Pluralised name of the CRD
+	AWSSqsQueueCRDGroup      = "trussle.com"  // CRD Group name
 )
 
 type AWSSqsQueue struct {
@@ -22,7 +22,7 @@ type AWSSqsQueue struct {
 type AWSSqsQueueSpec struct {
 	QueueName  string             `json:"queueName"`
 	Region     string             `json:"region"`
-	QueueUrl   string             `json:"queueUrl"`
+	QueueURL   string             `json:"queueUrl"`
 	Attributes map[string]*string `json:"attributes"`
 }
 
@@ -33,12 +33,16 @@ type AWSSqsQueueList struct {
 	Items []AWSSqsQueue `json:"items"`
 }
 
-func (c *Controller) AddQueue(obj interface{}) {
+func (c *Controller) AddQueue(obj interface{}) error {
 	queue := obj.(*AWSSqsQueue)
 	fmt.Printf("Creating queue %s\n", queue.Spec.QueueName)
 
-	c.regionHost.ConfigureRegion(c, queue.Spec.Region)
+	err := c.regionHost.ConfigureRegion(c, queue.Spec.Region)
 
+	if err != nil {
+		fmt.Printf("Error calling ConfigureRegion: %+v", err)
+		return err
+	}
 	input := &sqs.CreateQueueInput{
 		QueueName:  &queue.Spec.QueueName,
 		Attributes: queue.Spec.Attributes,
@@ -48,22 +52,21 @@ func (c *Controller) AddQueue(obj interface{}) {
 
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
-		return
+		return err
 	}
 
 	if response.QueueUrl == nil {
-		fmt.Printf("Encountered empty QueueUrl on AddQueue response")
-		return
+		return fmt.Errorf("Encountered empty QueueUrl on AddQueue response")
 	}
 	copiedObject, err := c.scheme.Copy(queue)
 
 	if err != nil {
 		fmt.Printf("Failed to create a copy of queue object: %v\n", err)
-		return
+		return err
 	}
 
 	queueCopy := copiedObject.(*AWSSqsQueue)
-	queueCopy.Spec.QueueUrl = *response.QueueUrl
+	queueCopy.Spec.QueueURL = *response.QueueUrl
 	if queueCopy.ObjectMeta.Annotations == nil {
 		queueCopy.ObjectMeta.Annotations = make(map[string]string)
 	}
@@ -79,51 +82,58 @@ func (c *Controller) AddQueue(obj interface{}) {
 
 	if err != nil {
 		fmt.Printf("Failed to PUT resource to kube-api %v\n", err)
-		return
+		return err
 	}
 
-	return
+	return nil
 }
 
-func (c *Controller) DeleteQueue(obj interface{}) {
+func (c *Controller) DeleteQueue(obj interface{}) error {
 	queue := obj.(*AWSSqsQueue)
-	c.regionHost.ConfigureRegion(c, queue.Spec.Region)
-	fmt.Printf("Deleting queue %s\n", queue.Spec.QueueUrl)
+	err := c.regionHost.ConfigureRegion(c, queue.Spec.Region)
+	if err != nil {
+		fmt.Printf("Error calling ConfigureRegion: %+v", err)
+		return err
+	}
 
 	input := &sqs.DeleteQueueInput{
-		QueueUrl: &queue.Spec.QueueUrl,
+		QueueUrl: &queue.Spec.QueueURL,
 	}
 
 	if queue.ObjectMeta.Annotations[AWSSqsQueueCRDGroup+"/sqs-autocreated"] != "true" {
-		fmt.Printf("Refusing to delete %s - queue not created by us\n", queue.Spec.QueueUrl)
-		return
+		return fmt.Errorf("Refusing to delete %s - queue not created by us\n", queue.Spec.QueueURL)
 	}
 
-	_, err := c.svc.DeleteQueue(input)
+	_, deleteQueueErr := c.svc.DeleteQueue(input)
 
-	if err != nil {
-		fmt.Printf(err.Error())
-		return
+	if deleteQueueErr != nil {
+		fmt.Printf(deleteQueueErr.Error())
+		return deleteQueueErr
 	}
 
-	return
+	return nil
 }
 
-func (c *Controller) UpdateQueue(old, new interface{}) {
+func (c *Controller) UpdateQueue(old, new interface{}) error {
 	queue := new.(*AWSSqsQueue)
-	c.regionHost.ConfigureRegion(c, queue.Spec.Region)
+	err := c.regionHost.ConfigureRegion(c, queue.Spec.Region)
+
+	if err != nil {
+		fmt.Printf("Error calling ConfigureRegion: %+v", err)
+		return err
+	}
 
 	input := &sqs.SetQueueAttributesInput{
-		QueueUrl:   &queue.Spec.QueueUrl,
+		QueueUrl:   &queue.Spec.QueueURL,
 		Attributes: queue.Spec.Attributes,
 	}
 
-	_, err := c.svc.SetQueueAttributes(input)
+	_, setQueueAttributesErr := c.svc.SetQueueAttributes(input)
 
-	if err != nil {
-		fmt.Printf("UpdateQueue - Encountered error setting queue attributes: %v", err)
-		return
+	if setQueueAttributesErr != nil {
+		fmt.Printf("UpdateQueue - Encountered error setting queue attributes: %v", setQueueAttributesErr)
+		return setQueueAttributesErr
 	}
 
-	return
+	return nil
 }

@@ -74,6 +74,34 @@ func (rc AWSRegionHost) ConfigureRegion(c *Controller, region string) error {
 	return nil
 }
 
+type controllerMethodDelegate func(obj interface{}) error
+type controllerUpdateMethodDelegate func(obj interface{}, new interface{}) error
+
+func wrapUpdateMethod(fn controllerUpdateMethodDelegate) func(obj interface{}, new interface{}) {
+	return func(obj interface{}, new interface{}) {
+		err := fn(obj, new)
+		if err != nil {
+			fmt.Printf("%+v", fn)
+			return
+		}
+
+		return
+	}
+}
+
+func wrapMethod(fn controllerMethodDelegate) func(obj interface{}) {
+	return func(obj interface{}) {
+
+		err := fn(obj)
+		if err != nil {
+			fmt.Printf("%+v", fn)
+			return
+		}
+
+		return
+	}
+}
+
 func (c *Controller) Run(clientset apiextcs.Interface, client *rest.RESTClient) {
 	err := Register(clientset, AWSSqsQueue{}, AWSSqsQueueCRDNamePlural, CRDGroup, CRDVersion)
 	if err != nil {
@@ -88,9 +116,9 @@ func (c *Controller) Run(clientset apiextcs.Interface, client *rest.RESTClient) 
 		&AWSSqsQueue{},
 		time.Minute*1,
 		cache.ResourceEventHandlerFuncs{
-			AddFunc:    c.AddQueue,
-			DeleteFunc: c.DeleteQueue,
-			UpdateFunc: c.UpdateQueue,
+			AddFunc:    wrapMethod(c.AddQueue),
+			DeleteFunc: wrapMethod(c.DeleteQueue),
+			UpdateFunc: wrapUpdateMethod(c.UpdateQueue),
 		},
 	)
 
