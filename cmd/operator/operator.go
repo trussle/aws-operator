@@ -67,6 +67,21 @@ func runOperator(args []string) error {
 			controller.Stop()
 		})
 	}
+	{
+		controller, err := sqs.New(*namespace,
+			clientSet,
+			crdcs,
+		)
+		if err != nil {
+			return errors.Wrap(err, "sqs")
+		}
+
+		g.Add(func() error {
+			return controller.Run(clientSet, sqsCrd)
+		}, func(error) {
+			controller.Stop()
+		})
+	}
 	gexec.Interrupt(g)
 	return g.Run()
 }
